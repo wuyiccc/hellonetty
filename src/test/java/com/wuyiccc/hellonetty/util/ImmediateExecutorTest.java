@@ -20,44 +20,38 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.wuyiccc.hellonetty.example.echo;
+package com.wuyiccc.hellonetty.util;
 
-import com.wuyiccc.hellonetty.bootstrap.ServerBootstrap;
-import com.wuyiccc.hellonetty.channel.ChannelFactory;
-import com.wuyiccc.hellonetty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.junit.Test;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
+import static org.junit.Assert.assertTrue;
+
 
 /**
- * Echoes back any received data from a client.
- *
  * @author The Netty Project (netty-dev@lists.jboss.org)
  * @author Trustin Lee (tlee@redhat.com)
  *
  * @version $Rev$, $Date$
  *
  */
-public class EchoServer {
+public class ImmediateExecutorTest {
 
-    public static void main(String[] args) throws Exception {
-        // Configure the server.
-        ChannelFactory factory =
-            new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
-
-        ServerBootstrap bootstrap = new ServerBootstrap(factory);
-        EchoHandler handler = new EchoHandler();
-
-        bootstrap.getPipeline().addLast("handler", handler);
-        bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("child.keepAlive", true);
-
-        // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(10023));
-
-        // Start performance monitor.
-        new ThroughputMonitor(handler).start();
+    @Test
+    public void shouldExecuteImmediately() {
+        ImmediateExecutor e = ImmediateExecutor.INSTANCE;
+        long startTime = System.currentTimeMillis();
+        e.execute(new Runnable() {
+            public void run() {
+                for (;;) {
+                    try {
+                        Thread.sleep(1000);
+                        break;
+                    } catch (InterruptedException e) {
+                        // Ignore
+                    }
+                }
+            }
+        });
+        assertTrue(System.currentTimeMillis() - startTime > 900);
     }
 }

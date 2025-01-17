@@ -20,44 +20,45 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.wuyiccc.hellonetty.example.echo;
+package com.wuyiccc.hellonetty.util;
 
-import com.wuyiccc.hellonetty.bootstrap.ServerBootstrap;
-import com.wuyiccc.hellonetty.channel.ChannelFactory;
-import com.wuyiccc.hellonetty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.junit.Test;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
+import java.io.InputStream;
+
+import static org.easymock.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.*;
+import static org.junit.Assert.assertEquals;
+
 
 /**
- * Echoes back any received data from a client.
- *
  * @author The Netty Project (netty-dev@lists.jboss.org)
  * @author Trustin Lee (tlee@redhat.com)
  *
  * @version $Rev$, $Date$
  *
  */
-public class EchoServer {
+public class SwitchableInputStreamTest {
 
-    public static void main(String[] args) throws Exception {
-        // Configure the server.
-        ChannelFactory factory =
-            new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
+    @Test
+    public void testSwitchStream() throws Exception {
+        SwitchableInputStream sin = new SwitchableInputStream();
 
-        ServerBootstrap bootstrap = new ServerBootstrap(factory);
-        EchoHandler handler = new EchoHandler();
+        InputStream in1 = createStrictMock(InputStream.class);
+        InputStream in2 = createStrictMock(InputStream.class);
+        expect(in1.read()).andReturn(1);
+        replay(in1, in2);
 
-        bootstrap.getPipeline().addLast("handler", handler);
-        bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("child.keepAlive", true);
+        sin.switchStream(in1);
+        assertEquals(1, sin.read());
+        verify(in1, in2);
+        reset(in1, in2);
 
-        // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(10023));
+        expect(in2.read()).andReturn(2);
+        replay(in1, in2);
 
-        // Start performance monitor.
-        new ThroughputMonitor(handler).start();
+        sin.switchStream(in2);
+        assertEquals(2, sin.read());
+        verify(in1, in2);
     }
 }

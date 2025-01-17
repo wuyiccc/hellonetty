@@ -20,44 +20,47 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.wuyiccc.hellonetty.example.echo;
+package com.wuyiccc.hellonetty.util;
 
-import com.wuyiccc.hellonetty.bootstrap.ServerBootstrap;
-import com.wuyiccc.hellonetty.channel.ChannelFactory;
-import com.wuyiccc.hellonetty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.junit.Test;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 
 /**
- * Echoes back any received data from a client.
- *
  * @author The Netty Project (netty-dev@lists.jboss.org)
  * @author Trustin Lee (tlee@redhat.com)
  *
  * @version $Rev$, $Date$
  *
  */
-public class EchoServer {
+public class TimeBasedUuidGeneratorTest {
+    private static final int COUNT = 100000;
 
-    public static void main(String[] args) throws Exception {
-        // Configure the server.
-        ChannelFactory factory =
-            new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
+    @Test
+    public void shouldGenerateTimeBasedUuid() {
+        UUID uuid = TimeBasedUuidGenerator.generate();
+        assertEquals(1, uuid.version());
+        assertEquals(2, uuid.variant());
+    }
 
-        ServerBootstrap bootstrap = new ServerBootstrap(factory);
-        EchoHandler handler = new EchoHandler();
+    @Test
+    public void shouldNotDuplicate() {
+        List<UUID> uuids = new ArrayList<UUID>(COUNT);
+        for (int i = 0; i < COUNT; i ++) {
+            uuids.add(TimeBasedUuidGenerator.generate());
+        }
 
-        bootstrap.getPipeline().addLast("handler", handler);
-        bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("child.keepAlive", true);
+        Collections.sort(uuids);
 
-        // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(10023));
-
-        // Start performance monitor.
-        new ThroughputMonitor(handler).start();
+        for (int i = 1; i < COUNT; i ++) {
+            assertFalse(uuids.get(i - 1).equals(uuids.get(i)));
+        }
     }
 }

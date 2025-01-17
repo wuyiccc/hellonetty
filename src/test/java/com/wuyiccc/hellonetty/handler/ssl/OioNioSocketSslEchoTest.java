@@ -20,44 +20,31 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.wuyiccc.hellonetty.example.echo;
+package com.wuyiccc.hellonetty.handler.ssl;
 
-import com.wuyiccc.hellonetty.bootstrap.ServerBootstrap;
 import com.wuyiccc.hellonetty.channel.ChannelFactory;
 import com.wuyiccc.hellonetty.channel.socket.nio.NioServerSocketChannelFactory;
+import com.wuyiccc.hellonetty.channel.socket.oio.OioClientSocketChannelFactory;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Executor;
 
 /**
- * Echoes back any received data from a client.
- *
  * @author The Netty Project (netty-dev@lists.jboss.org)
  * @author Trustin Lee (tlee@redhat.com)
  *
  * @version $Rev$, $Date$
  *
  */
-public class EchoServer {
+public class OioNioSocketSslEchoTest extends AbstractSocketSslEchoTest {
 
-    public static void main(String[] args) throws Exception {
-        // Configure the server.
-        ChannelFactory factory =
-            new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
-
-        ServerBootstrap bootstrap = new ServerBootstrap(factory);
-        EchoHandler handler = new EchoHandler();
-
-        bootstrap.getPipeline().addLast("handler", handler);
-        bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("child.keepAlive", true);
-
-        // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(10023));
-
-        // Start performance monitor.
-        new ThroughputMonitor(handler).start();
+    @Override
+    protected ChannelFactory newClientSocketChannelFactory(Executor executor) {
+        return new OioClientSocketChannelFactory(executor);
     }
+
+    @Override
+    protected ChannelFactory newServerSocketChannelFactory(Executor executor) {
+        return new NioServerSocketChannelFactory(executor, executor);
+    }
+
 }

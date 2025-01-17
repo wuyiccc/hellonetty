@@ -20,44 +20,41 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.wuyiccc.hellonetty.example.echo;
+package com.wuyiccc.hellonetty.buffer;
 
-import com.wuyiccc.hellonetty.bootstrap.ServerBootstrap;
-import com.wuyiccc.hellonetty.channel.ChannelFactory;
-import com.wuyiccc.hellonetty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.junit.Test;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Echoes back any received data from a client.
  *
  * @author The Netty Project (netty-dev@lists.jboss.org)
  * @author Trustin Lee (tlee@redhat.com)
  *
  * @version $Rev$, $Date$
- *
  */
-public class EchoServer {
+public class SlicedChannelBufferTest extends AbstractChannelBufferTest {
 
-    public static void main(String[] args) throws Exception {
-        // Configure the server.
-        ChannelFactory factory =
-            new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
+    private final Random random = new Random();
+    private ChannelBuffer buffer;
 
-        ServerBootstrap bootstrap = new ServerBootstrap(factory);
-        EchoHandler handler = new EchoHandler();
+    @Override
+    protected ChannelBuffer newBuffer(int length) {
+        buffer = ChannelBuffers.wrappedBuffer(
+                new byte[length * 2], random.nextInt(length - 1) + 1, length);
+        assertEquals(length, buffer.writerIndex());
+        return buffer;
+    }
 
-        bootstrap.getPipeline().addLast("handler", handler);
-        bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("child.keepAlive", true);
+    @Override
+    protected ChannelBuffer[] components() {
+        return new ChannelBuffer[] { buffer };
+    }
 
-        // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(10023));
-
-        // Start performance monitor.
-        new ThroughputMonitor(handler).start();
+    @Test(expected = NullPointerException.class)
+    public void shouldNotAllowNullInConstructor() {
+        new SlicedChannelBuffer(null, 0, 0);
     }
 }

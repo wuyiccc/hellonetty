@@ -20,44 +20,35 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.wuyiccc.hellonetty.example.echo;
+package com.wuyiccc.hellonetty.channel;
 
-import com.wuyiccc.hellonetty.bootstrap.ServerBootstrap;
-import com.wuyiccc.hellonetty.channel.ChannelFactory;
-import com.wuyiccc.hellonetty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.junit.Test;
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
+import static org.easymock.EasyMock.createMock;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+
 
 /**
- * Echoes back any received data from a client.
- *
  * @author The Netty Project (netty-dev@lists.jboss.org)
  * @author Trustin Lee (tlee@redhat.com)
  *
  * @version $Rev$, $Date$
  *
  */
-public class EchoServer {
+public class FailedChannelFutureTest {
+    @Test
+    public void testConstantProperties() {
+        Channel channel = createMock(Channel.class);
+        Exception e = new Exception();
+        FailedChannelFuture future = new FailedChannelFuture(channel, e);
 
-    public static void main(String[] args) throws Exception {
-        // Configure the server.
-        ChannelFactory factory =
-            new NioServerSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
+        assertFalse(future.isSuccess());
+        assertSame(e, future.getCause());
+    }
 
-        ServerBootstrap bootstrap = new ServerBootstrap(factory);
-        EchoHandler handler = new EchoHandler();
-
-        bootstrap.getPipeline().addLast("handler", handler);
-        bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("child.keepAlive", true);
-
-        // Bind and start to accept incoming connections.
-        bootstrap.bind(new InetSocketAddress(10023));
-
-        // Start performance monitor.
-        new ThroughputMonitor(handler).start();
+    @Test(expected = NullPointerException.class)
+    public void shouldDisallowNullException() {
+        new FailedChannelFuture(createMock(Channel.class), null);
     }
 }
