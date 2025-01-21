@@ -140,6 +140,8 @@ public abstract class AbstractChannelBuffer implements ChannelBuffer {
     }
 
     public long getUnsignedInt(int index) {
+        // 0xFFFFFFFFL 是 4个字节(int)的1
+        // 1111 1111 1111 1111 1111 1111 1111 1111
         return getInt(index) & 0xFFFFFFFFL;
     }
 

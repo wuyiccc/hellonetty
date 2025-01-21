@@ -80,6 +80,7 @@ class NioServerSocketChannel extends AbstractServerChannel
 
         config = new DefaultServerSocketChannelConfig(socket.socket());
 
+        // 执行channelOpen 开始绑定端口
         fireChannelOpen(this);
     }
 

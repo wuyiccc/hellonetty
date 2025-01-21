@@ -163,6 +163,7 @@ public class ServerBootstrap extends Bootstrap {
     }
 
     /**
+     * 服务端channel使用parentHandler
      * Sets an optional {@link ChannelHandler} which intercepts an event of
      * a new bound server-side channel which accepts incoming connections.
      *

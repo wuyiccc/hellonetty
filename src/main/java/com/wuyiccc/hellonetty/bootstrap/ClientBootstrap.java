@@ -251,6 +251,7 @@ public class ClientBootstrap extends Bootstrap {
 
             // Bind or connect.
             if (localAddress != null) {
+                // localAddress是指定本地客户端连接服务端的时候使用指定的端口去链接, 而不是随机指定
                 event.getChannel().bind(localAddress);
             } else {
                 futureQueue.offer(event.getChannel().connect(remoteAddress));
@@ -266,6 +267,8 @@ public class ClientBootstrap extends Bootstrap {
 
             // Connect if not connected yet.
             if (localAddress != null) {
+                // 如果localAddress不为null, 说明前面channelOpen仅仅绑定了本地端口, 还未链接到远程端口
+                // (ps: 为什么要这么分开操作呢? netty4.x版本的代码中绑定本地端口和链接远程端口是在同一个方法里面执行了NioSocketChannel#doConnect())
                 futureQueue.offer(event.getChannel().connect(remoteAddress));
                 finished = true;
             }

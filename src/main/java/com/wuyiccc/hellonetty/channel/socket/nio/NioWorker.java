@@ -119,6 +119,7 @@ class NioWorker implements Runnable {
         }
     }
 
+    // 事件循环核心逻辑
     public void run() {
         thread = Thread.currentThread();
 

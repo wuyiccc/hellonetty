@@ -74,6 +74,7 @@ public class EchoClient {
         bootstrap.getPipeline().addLast("handler", handler);
         bootstrap.setOption("tcpNoDelay", true);
         bootstrap.setOption("keepAlive", true);
+        bootstrap.setOption("localAddress", new InetSocketAddress("192.168.5.105", 3111));
 
         // Start the connection attempt.
         bootstrap.connect(new InetSocketAddress(host, port));
