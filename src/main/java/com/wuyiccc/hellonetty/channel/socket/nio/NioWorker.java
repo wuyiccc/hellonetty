@@ -300,6 +300,7 @@ class NioWorker implements Runnable {
         worker.preallocatedDirectBuffer = null;
 
         if (preallocatedDirectBuffer == null) {
+            // 分配1mb
             preallocatedDirectBuffer = ChannelBuffers.directBuffer(1048576);
         }
 

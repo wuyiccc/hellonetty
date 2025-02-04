@@ -25,6 +25,7 @@ public class EasyChatServer {
         bootstrap.setPipelineFactory(new EasyChatPipelineFactory(handler));
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("child.keepAlive", true);
+        bootstrap.setOption("backlog", 2);
 
         bootstrap.bind(new InetSocketAddress(8080));
     }

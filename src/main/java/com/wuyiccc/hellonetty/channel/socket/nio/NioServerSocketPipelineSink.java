@@ -51,8 +51,11 @@ class NioServerSocketPipelineSink extends AbstractChannelSink {
         InternalLoggerFactory.getInstance(NioServerSocketPipelineSink.class);
     private static final AtomicInteger nextId = new AtomicInteger();
 
+    // boss的id
     private final int id = nextId.incrementAndGet();
+    // worker线程组
     private final NioWorker[] workers;
+    // worker线程的id
     private final AtomicInteger workerIndex = new AtomicInteger();
 
     NioServerSocketPipelineSink(Executor workerExecutor, int workerCount) {
@@ -147,6 +150,7 @@ class NioServerSocketPipelineSink extends AbstractChannelSink {
 
             Executor bossExecutor =
                 ((NioServerSocketChannelFactory) channel.getFactory()).bossExecutor;
+            // 启动boss线程, 监听accept连接
             bossExecutor.execute(new ThreadRenamingRunnable(
                     new Boss(channel),
                     "New I/O server boss #" + id +" (channelId: " + channel.getId() +
@@ -184,6 +188,7 @@ class NioServerSocketPipelineSink extends AbstractChannelSink {
                 workerIndex.getAndIncrement() % workers.length)];
     }
 
+    // boss线程, 负责accept连接
     private class Boss implements Runnable {
         private final NioServerSocketChannel channel;
 
@@ -194,10 +199,13 @@ class NioServerSocketPipelineSink extends AbstractChannelSink {
         public void run() {
             for (;;) {
                 try {
+                    // 直接阻塞获取客户端channel
                     SocketChannel acceptedSocket = channel.socket.accept();
                     try {
+                        // 获取ServerSocketChannel的pipeline
                         ChannelPipeline pipeline =
                             channel.getConfig().getPipelineFactory().getPipeline();
+                        // 将客户端channel注册到worker上
                         NioWorker worker = nextWorker();
                         worker.register(new NioAcceptedSocketChannel(
                                         channel.getFactory(), pipeline, channel,
